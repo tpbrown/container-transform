@@ -93,6 +93,16 @@ class ComposeTransformer(BaseTransformer):
         output = {
             'protocol': protocol
         }
+
+        # compose v3 format
+        if type(mapping) is dict:
+            output.update({
+                'host_port': int(mapping['published']),
+                'container_port': int(mapping['target'])
+            })
+            return output
+
+        # all others
         mapping = str(mapping).rstrip('/udp')
         parts = str(mapping).split(':')
         if len(parts) == 1:
@@ -272,6 +282,14 @@ class ComposeTransformer(BaseTransformer):
 
     @staticmethod
     def _ingest_volume(volume):
+        # compose v3 volumes are a dict
+        if type(volume) is dict:
+            return {
+                'host': volume['source'],
+                'container': volume['target']
+            }
+
+        # older compose are string
         parts = volume.split(':')
 
         if len(parts) == 1:
